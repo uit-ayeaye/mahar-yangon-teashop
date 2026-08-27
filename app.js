@@ -36,6 +36,7 @@
     root.setAttribute('lang', lang === 'my' ? 'my' : 'en');
     var t = $('#langToggle');
     if (t) t.setAttribute('aria-label', lang === 'my' ? 'Switch to English' : 'မြန်မာဘာသာသို့ ပြောင်းရန်');
+    try { doc.dispatchEvent(new CustomEvent('mytea:lang', { detail: lang })); } catch (e) { /* old browser */ }
   }
   var stored = readStoredLang();
   var initial = stored || ((navigator.language || 'en').toLowerCase().indexOf('my') === 0 ? 'my' : 'en');
@@ -194,7 +195,8 @@
     if (isNaN(target)) return;
     var suffix = el.getAttribute('data-suffix') || '';
     function settle() { el.textContent = target.toLocaleString('en-US') + suffix; }
-    if (el.getAttribute('data-plain') || reduce) { el.textContent = target + suffix; return; }
+    if (el.getAttribute('data-plain')) { el.textContent = target + suffix; return; }
+    if (reduce) { settle(); return; }
     var dur = 1500, t0 = null, done = false;
     function step(ts) {
       if (t0 === null) t0 = ts;
@@ -223,9 +225,13 @@
 
 
   /* ---------------- tea picker ----------------
-     The five tea cards stay in the DOM as the data source and as the
-     no-JS fallback. Here we read them and build a pick-your-cup stage
-     on top, then hide the plain list. */
+     The five .tea-card list items in the markup are the single source of
+     truth: they hold the names, the copy, the sweet/rich meters and the
+     brew colours, and they are what a visitor without JS sees. Everything
+     below reads that list and builds the pick-your-cup stage on top of it.
+
+     To add or change a cup, edit the <li> in index.html — nothing here
+     needs to know how many there are. */
   (function buildTeaPicker() {
     var mount = $('#teaPicker');
     var grid = $('#teaGrid');
@@ -246,10 +252,22 @@
         en: ($('i', card) || {}).textContent || '',
         descMy: (($('p .t-my', card) || {}).textContent || ''),
         descEn: (($('p .t-en', card) || {}).textContent || ''),
-        meters: meters
+        meters: meters,
+        sweet: meters[0] ? meters[0].value : 3,
+        rich: meters[1] ? meters[1].value : 3,
+        steps: meters[0] ? meters[0].total : 5,
+        top: card.getAttribute('data-top') || '#C89050',
+        mid: card.getAttribute('data-mid') || '#A96F36',
+        bot: card.getAttribute('data-bot') || '#6F4322',
+        foam: parseFloat(card.getAttribute('data-foam') || '.2'),
+        sugar: parseFloat(card.getAttribute('data-sugar') || '.4'),
+        photo: card.getAttribute('data-photo') || ''
       };
     });
     if (teas.length < 2) return;
+
+    var STEPS = teas[0].steps || 5;
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
 
     function meterHTML(m) {
       var pips = '';
@@ -259,47 +277,184 @@
       return '<span class="meter" data-label-my="' + m.my + '" data-label-en="' + m.en + '">' + pips + '</span>';
     }
 
-    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    /* The glass. Colours, foam depth and the sweet layer at the bottom all
+       come from the card's data-* attributes, so every cup pours differently. */
+    var GLASS =
+      '<svg class="cup-svg" viewBox="0 0 140 172" role="img" aria-hidden="true" focusable="false">' +
+        '<defs>' +
+          '<linearGradient id="teaFill" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="var(--tea-top)"/>' +
+            '<stop offset="52%" stop-color="var(--tea-mid)"/>' +
+            '<stop offset="100%" stop-color="var(--tea-bot)"/>' +
+          '</linearGradient>' +
+          '<clipPath id="glassClip">' +
+            '<path d="M40 34h60l-7 96a15 15 0 0 1-15 14H62a15 15 0 0 1-15-14z"/>' +
+          '</clipPath>' +
+        '</defs>' +
+        '<ellipse class="cup-shadow" cx="70" cy="152" rx="45" ry="8"/>' +
+        '<g clip-path="url(#glassClip)">' +
+          '<rect class="cup-empty" x="34" y="30" width="72" height="120"/>' +
+          '<g class="cup-pour">' +
+            '<rect class="cup-liquid" x="34" y="44" width="72" height="106" fill="url(#teaFill)"/>' +
+            '<rect class="cup-sweet" x="34" width="72"/>' +
+            '<ellipse class="cup-swirl s1" cx="58" cy="96" rx="26" ry="9"/>' +
+            '<ellipse class="cup-swirl s2" cx="84" cy="116" rx="21" ry="7"/>' +
+          '</g>' +
+          '<ellipse class="cup-foam" cx="70" cy="45" rx="36"/>' +
+          '<rect class="cup-shine" x="48" y="38" width="9" height="104" rx="5"/>' +
+        '</g>' +
+        '<path class="cup-glass" d="M40 34h60l-7 96a15 15 0 0 1-15 14H62a15 15 0 0 1-15-14z"/>' +
+        '<path class="cup-rim" d="M38 34h64"/>' +
+        '<path class="cup-saucer" d="M28 152h84"/>' +
+      '</svg>';
 
     mount.innerHTML =
       '<div class="tea-stage">' +
         '<span class="stage-glow" aria-hidden="true"></span>' +
         '<span class="stage-frame" aria-hidden="true"></span>' +
+        '<button class="stage-arrow prev" type="button" aria-label="Previous cup">' +
+          '<svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></button>' +
+        '<button class="stage-arrow next" type="button" aria-label="Next cup">' +
+          '<svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>' +
         '<div class="stage-card" id="teaStageCard" role="tabpanel" aria-live="polite">' +
           '<span class="stage-index" aria-hidden="true"><b>01</b><i>/</i>' + pad(teas.length) + '</span>' +
-          '<span class="stage-cup"><svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg>' +
-            '<span class="ssteam"><i></i><i></i><i></i></span></span>' +
-          '<b class="stage-my"></b>' +
-          '<i class="stage-en"></i>' +
-          '<p class="stage-desc"><span class="t-my"></span><span class="t-en"></span></p>' +
-          '<div class="stage-meters"></div>' +
-          '<a class="btn btn-gold stage-cta bounce" href="tel:+959882090011">' +
-            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.6a1 1 0 0 1-.25 1z"/></svg>' +
-            '<span class="t-my">ဒီတစ်ခွက် မှာမယ်</span><span class="t-en">Order this cup</span>' +
-          '</a>' +
+          '<div class="stage-cup">' +
+            '<span class="cup-halo" aria-hidden="true"></span>' +
+            GLASS +
+            '<span class="ssteam" aria-hidden="true"><i></i><i></i><i></i></span>' +
+            '<img class="cup-photo" alt="" hidden>' +
+          '</div>' +
+          '<div class="stage-body">' +
+            '<b class="stage-my"></b>' +
+            '<i class="stage-en"></i>' +
+            '<p class="stage-desc"><span class="t-my"></span><span class="t-en"></span></p>' +
+            '<div class="stage-meters"></div>' +
+            '<a class="btn btn-gold stage-cta bounce" href="tel:+959882090011">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.6a1 1 0 0 1-.25 1z"/></svg>' +
+              '<span class="t-my">ဒီတစ်ခွက် မှာမယ်</span><span class="t-en">Order this cup</span>' +
+            '</a>' +
+          '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="tea-rail" role="tablist" aria-label="Choose your cup">' +
-        teas.map(function (t, i) {
-          return '<button class="tea-token" type="button" role="tab" data-i="' + i + '" ' +
-                 'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
-                   '<span class="token-gem"><span class="token-ring" aria-hidden="true"></span>' +
-                     '<svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg></span>' +
-                   '<span class="token-my">' + t.my + '</span>' +
-                   '<span class="token-en">' + t.en + '</span>' +
-                 '</button>';
-        }).join('') +
+
+      '<div class="tea-rail-wrap">' +
+        '<div class="tea-rail" id="teaRail" role="tablist" aria-label="Choose your cup">' +
+          teas.map(function (t, i) {
+            return '<button class="tea-token" type="button" role="tab" data-i="' + i + '" ' +
+                   'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+                     '<span class="token-gem" style="--tea-mid:' + t.mid + ';--tea-bot:' + t.bot + '">' +
+                       '<span class="token-ring" aria-hidden="true"></span>' +
+                       '<span class="token-brew" aria-hidden="true"></span>' +
+                       '<svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg></span>' +
+                     '<span class="token-my">' + t.my + '</span>' +
+                     '<span class="token-en">' + t.en + '</span>' +
+                   '</button>';
+          }).join('') +
+        '</div>' +
       '</div>' +
-      '<p class="tea-hint"><span class="t-my">ခွက်တစ်ခုကို ရွေးကြည့်ပါ</span><span class="t-en">Tap a cup to see how it drinks</span></p>';
+      '<p class="tea-hint"><span class="t-my">ခွက်တစ်ခုကို ရွေးကြည့်ပါ</span><span class="t-en">Tap a cup to see how it drinks</span></p>' +
+
+      /* the dial: describe the cup you want and we name it for you */
+      '<div class="taste" id="taste">' +
+        '<p class="taste-head">' +
+          '<svg class="ico" aria-hidden="true"><use href="#i-sparkle"/></svg>' +
+          '<span class="t-my">ဒါမှမဟုတ် ကြိုက်တဲ့အရသာကို ချိန်ကြည့်ပါ</span>' +
+          '<span class="t-en">Or dial in the cup you want</span>' +
+        '</p>' +
+        '<div class="dial">' +
+          dialRow('sweet', teas[0].meters[0]) +
+          dialRow('rich', teas[0].meters[1]) +
+        '</div>' +
+        '<p class="taste-out">' +
+          '<span class="t-my">ကျွန်ုပ်တို့ ဖျော်ပေးမယ့်ခွက် —</span>' +
+          '<span class="t-en">We&rsquo;d pour you a</span>' +
+          '<b class="taste-pick"></b>' +
+        '</p>' +
+      '</div>';
+
+    function dialRow(axis, m) {
+      if (!m) return '';
+      var pips = '';
+      for (var k = 1; k <= STEPS; k++) {
+        pips += '<button class="pip" type="button" data-v="' + k + '" tabindex="-1" aria-hidden="true"></button>';
+      }
+      return '<div class="dial-row" data-axis="' + axis + '">' +
+               '<span class="dial-label" data-label-my="' + m.my + '" data-label-en="' + m.en + '"></span>' +
+               '<span class="dial-pips" role="slider" tabindex="0" aria-valuemin="1" aria-valuemax="' + STEPS + '" ' +
+                 'aria-valuenow="3" aria-label="' + m.en + '">' + pips + '</span>' +
+               '<span class="dial-num"><b>3</b>/' + STEPS + '</span>' +
+             '</div>';
+    }
 
     var card = $('#teaStageCard', mount);
+    var rail = $('#teaRail', mount);
     var tokens = $$('.tea-token', mount);
     var elMy = $('.stage-my', card), elEn = $('.stage-en', card);
     var elDescMy = $('.stage-desc .t-my', card), elDescEn = $('.stage-desc .t-en', card);
     var elMeters = $('.stage-meters', card), elIndex = $('.stage-index b', card);
+    var elCup = $('.stage-cup', card);
+    var elSweetRect = $('.cup-sweet', card), elFoam = $('.cup-foam', card);
+    var elPhoto = $('.cup-photo', card);
+    var pickOut = $('.taste-pick', mount);
+    var dialRows = $$('.dial-row', mount);
     var current = -1;
+    var dial = { sweet: teas[0].sweet, rich: teas[0].rich };
 
-    function select(i, focusToken) {
+    /* fade the rail's edges only while there is actually something off-screen */
+    var railWrap = $('.tea-rail-wrap', mount);
+    function paintRail() {
+      if (!rail || !railWrap) return;
+      var max = rail.scrollWidth - rail.clientWidth;
+      railWrap.classList.toggle('scrollable', max > 4);
+      railWrap.classList.toggle('at-start', rail.scrollLeft < 4);
+      railWrap.classList.toggle('at-end', rail.scrollLeft > max - 4);
+    }
+    if (rail) {
+      var rTick = false;
+      rail.addEventListener('scroll', function () {
+        if (rTick) return;
+        rTick = true;
+        window.requestAnimationFrame(function () { paintRail(); rTick = false; });
+      }, { passive: true });
+      window.addEventListener('resize', paintRail);
+    }
+
+    /* Scroll the rail itself — never scrollIntoView(), which walks up to the
+       document and drags the whole page sideways on narrow screens. */
+    function centreToken(i) {
+      var t = tokens[i];
+      if (!rail || !t || rail.scrollWidth <= rail.clientWidth + 1) return;
+      var target = t.offsetLeft - (rail.clientWidth - t.offsetWidth) / 2;
+      target = Math.max(0, Math.min(target, rail.scrollWidth - rail.clientWidth));
+      if (Math.abs(target - rail.scrollLeft) < 2) return;
+      if (rail.scrollTo) rail.scrollTo({ left: target, behavior: reduce ? 'auto' : 'smooth' });
+      else rail.scrollLeft = target;
+    }
+
+    function paintDial() {
+      dialRows.forEach(function (row) {
+        var axis = row.getAttribute('data-axis');
+        var v = dial[axis];
+        var pips = $$('.pip', row);
+        pips.forEach(function (p, k) { p.classList.toggle('on', k < v); });
+        var slider = $('.dial-pips', row);
+        if (slider) slider.setAttribute('aria-valuenow', String(v));
+        var num = $('.dial-num b', row);
+        if (num) num.textContent = String(v);
+      });
+    }
+
+    function matchDial() {
+      var best = 0, bestD = Infinity;
+      teas.forEach(function (t, i) {
+        var d = Math.abs(t.sweet - dial.sweet) * 1.15 + Math.abs(t.rich - dial.rich);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return best;
+    }
+
+    function select(i, opts) {
+      opts = opts || {};
       i = (i + teas.length) % teas.length;
       if (i === current) return;
       var t = teas[i];
@@ -309,12 +464,28 @@
       void card.offsetWidth;           // restart the entrance animation
       card.classList.add('swap');
 
+      /* pour this cup's colours into the glass */
+      card.style.setProperty('--tea-top', t.top);
+      card.style.setProperty('--tea-mid', t.mid);
+      card.style.setProperty('--tea-bot', t.bot);
+      if (elFoam) elFoam.setAttribute('ry', String(3 + t.foam * 13));
+      if (elSweetRect) {
+        var h = 6 + t.sugar * 30;
+        elSweetRect.setAttribute('height', String(h));
+        elSweetRect.setAttribute('y', String(150 - h));
+      }
+      if (elPhoto) {                    // real photo wins over the drawn glass
+        if (t.photo) { elPhoto.src = t.photo; elPhoto.alt = t.en; elPhoto.hidden = false; elCup.classList.add('has-photo'); }
+        else { elPhoto.removeAttribute('src'); elPhoto.hidden = true; elCup.classList.remove('has-photo'); }
+      }
+
       elMy.textContent = t.my;
       elEn.textContent = t.en;
       elDescMy.textContent = t.descMy;
       elDescEn.textContent = t.descEn;
       elIndex.textContent = pad(i + 1);
       elMeters.innerHTML = t.meters.map(meterHTML).join('');
+      if (pickOut) { pickOut.setAttribute('data-my', t.my); pickOut.setAttribute('data-en', t.en); paintPick(); }
 
       tokens.forEach(function (b, k) {
         var on = k === i;
@@ -322,22 +493,53 @@
         b.setAttribute('aria-selected', on ? 'true' : 'false');
         b.setAttribute('tabindex', on ? '0' : '-1');
       });
-      if (focusToken && tokens[i]) tokens[i].focus();
-      var t2 = tokens[i];
-      if (t2 && t2.scrollIntoView) t2.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      if (opts.focusToken && tokens[i]) tokens[i].focus();
+      if (opts.syncDial !== false) { dial.sweet = t.sweet; dial.rich = t.rich; paintDial(); }
+      if (opts.scroll !== false) centreToken(i);
     }
 
     tokens.forEach(function (b) {
       b.addEventListener('click', function () { select(parseInt(b.getAttribute('data-i'), 10)); });
       b.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); select(current + 1, true); }
-        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); select(current - 1, true); }
-        else if (e.key === 'Home') { e.preventDefault(); select(0, true); }
-        else if (e.key === 'End') { e.preventDefault(); select(teas.length - 1, true); }
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); select(current + 1, { focusToken: true }); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); select(current - 1, { focusToken: true }); }
+        else if (e.key === 'Home') { e.preventDefault(); select(0, { focusToken: true }); }
+        else if (e.key === 'End') { e.preventDefault(); select(teas.length - 1, { focusToken: true }); }
       });
     });
 
-    // swipe the stage to move between cups
+    $$('.stage-arrow', mount).forEach(function (a) {
+      a.addEventListener('click', function () {
+        select(current + (a.classList.contains('next') ? 1 : -1));
+      });
+    });
+
+    /* the dial */
+    dialRows.forEach(function (row) {
+      var axis = row.getAttribute('data-axis');
+      function setV(v) {
+        v = Math.max(1, Math.min(STEPS, v));
+        if (v === dial[axis]) return;
+        dial[axis] = v;
+        paintDial();
+        row.classList.remove('nudge'); void row.offsetWidth; row.classList.add('nudge');
+        select(matchDial(), { syncDial: false });
+      }
+      $$('.pip', row).forEach(function (p) {
+        p.addEventListener('click', function () { setV(parseInt(p.getAttribute('data-v'), 10)); });
+      });
+      var slider = $('.dial-pips', row);
+      if (slider) {
+        slider.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); setV(dial[axis] + 1); }
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); setV(dial[axis] - 1); }
+          else if (e.key === 'Home') { e.preventDefault(); setV(1); }
+          else if (e.key === 'End') { e.preventDefault(); setV(STEPS); }
+        });
+      }
+    });
+
+    /* swipe the stage to move between cups */
     var sx = 0, sy = 0;
     card.addEventListener('touchstart', function (e) {
       sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
@@ -347,20 +549,47 @@
       if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) select(current + (dx < 0 ? 1 : -1));
     }, { passive: true });
 
+    /* the dial labels and the matched cup are bilingual and swap with the toggle */
+    function isMy() { return doc.body.getAttribute('data-lang') === 'my'; }
+    function paintPick() {
+      if (!pickOut) return;
+      pickOut.textContent = pickOut.getAttribute(isMy() ? 'data-my' : 'data-en') || '';
+    }
+    function paintDialLabels() {
+      var my = isMy();
+      $$('.dial-label', mount).forEach(function (l) {
+        l.textContent = l.getAttribute(my ? 'data-label-my' : 'data-label-en') || '';
+      });
+      paintPick();
+    }
+    paintDialLabels();
+    doc.addEventListener('mytea:lang', paintDialLabels);
+
     grid.setAttribute('hidden', '');
     mount.removeAttribute('hidden');
-    select(0);
+    /* No rail scrolling on the first paint: the page has just loaded and the
+       visitor is still up at the hero. */
+    select(0, { scroll: false });
+    paintDial();
+    paintRail();
   })();
 
-  /* ---------------- reels ---------------- */
+  /* ---------------- reels ----------------
+     A horizontal rail of the shop's TikToks. Every way of moving through it
+     drives the same scroller: drag, swipe, the arrows, the dots, the keyboard
+     and the mouse wheel. Add or remove an <article class="reel"> in the markup
+     and the arrows, dots and keyboard all follow automatically. */
+  var reelsRoot = $('#reelsRail');
   var reels = $$('.reel');
   var allReelVideos = [];
+  var reelApi = [];          // one entry per reel: { play, stop, ensure }
 
-  reels.forEach(function (reel) {
+  reels.forEach(function (reel, index) {
     var phone = $('.phone', reel);
     var vid = $('.reel-v', reel);
     var src = reel.getAttribute('data-src');
     var sound = $('.reel-sound', reel);
+    var bar = $('.reel-bar i', reel);
     if (!phone || !vid || !src) return;
     allReelVideos.push(vid);
 
@@ -372,18 +601,22 @@
       var u = sound.querySelector('use');
       if (u) u.setAttribute('href', vid.muted ? '#i-mute' : '#i-sound');
     }
+    function stopOthers() {
+      allReelVideos.forEach(function (o) { if (o !== vid) { o.pause(); o.muted = true; } });
+      $$('.phone').forEach(function (p) { if (p !== phone) p.classList.remove('playing'); });
+    }
 
-    // tap = play, and unmute (this is a user gesture, so sound is allowed)
+    // tap = play with sound (a user gesture, so unmuting is allowed)
     phone.addEventListener('click', function () {
       ensureSrc();
       if (vid.paused) {
-        allReelVideos.forEach(function (o) { if (o !== vid) { o.pause(); o.muted = true; } });
-        $$('.phone').forEach(function (p) { if (p !== phone) p.classList.remove('playing'); });
+        stopOthers();
         vid.muted = false;
         var p = vid.play();
         if (p && p.catch) p.catch(function () { vid.muted = true; vid.play(); });
         phone.classList.add('playing');
       } else if (vid.muted) {
+        stopOthers();
         vid.muted = false;
       } else {
         vid.pause();
@@ -396,27 +629,41 @@
     vid.addEventListener('pause', function () {
       if (vid.muted) phone.classList.remove('playing');
     });
+    vid.addEventListener('timeupdate', function () {
+      if (bar && vid.duration) bar.style.transform = 'scaleX(' + (vid.currentTime / vid.duration) + ')';
+    });
+    // a Yangon mobile connection can sit on a poster for a while — say so
+    ['loadstart', 'waiting', 'stalled'].forEach(function (ev) {
+      vid.addEventListener(ev, function () { if (!vid.getAttribute('src')) return; phone.classList.add('buffering'); });
+    });
+    ['loadeddata', 'canplay', 'playing', 'error'].forEach(function (ev) {
+      vid.addEventListener(ev, function () { phone.classList.remove('buffering'); });
+    });
+    vid.addEventListener('loadeddata', function () { phone.classList.add('ready'); });
+    vid.addEventListener('error', function () { phone.classList.add('failed'); });
 
-    // auto-preview (muted) while the reel sits in view — the TikTok feel
-    if (!reduce && !saveData && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (en) {
-        if (en[0].isIntersecting) {
-          ensureSrc();
-          if (vid.paused && vid.muted !== false) {
-            vid.muted = true;
-            var p = vid.play();
-            if (p && p.catch) p.catch(function () {});
-            phone.classList.add('playing');
-            setSoundIcon();
-          }
-        } else {
-          vid.pause();
+    reelApi[index] = {
+      // muted auto-preview — the TikTok feel, but only ever one at a time
+      preview: function () {
+        if (reduce || saveData) return;
+        ensureSrc();
+        if (vid.paused && vid.muted !== false) {
           vid.muted = true;
-          phone.classList.remove('playing');
+          var p = vid.play();
+          if (p && p.catch) p.catch(function () {});
+          phone.classList.add('playing');
           setSoundIcon();
         }
-      }, { threshold: 0.62 }).observe(phone);
-    }
+      },
+      // never interrupt a clip the visitor deliberately turned the sound on for
+      rest: function () {
+        if (!vid.muted && !vid.paused) return;
+        vid.pause();
+        vid.muted = true;
+        phone.classList.remove('playing');
+        setSoundIcon();
+      }
+    };
   });
 
   // pause everything when the tab is hidden
@@ -429,27 +676,131 @@
     }
   });
 
-  /* drag-to-scroll the reels rail on desktop */
-  var rail = $('#reelsRail');
-  if (rail) {
-    var down = false, startX = 0, startScroll = 0, moved = 0;
-    rail.addEventListener('pointerdown', function (e) {
-      if (e.pointerType !== 'mouse') return;
-      down = true; moved = 0; startX = e.clientX; startScroll = rail.scrollLeft;
-      rail.style.cursor = 'grabbing';
+  /* ---- driving the rail ----
+     Drag, swipe, wheel, arrows, dots and the keyboard all move the same
+     scroller, and whichever reel ends up centred is the one that previews —
+     so a wide screen showing five phones still only downloads and plays one. */
+  if (reelsRoot && reels.length) {
+    var dots = $$('.reel-dot');
+    var prevBtn = $('#reelsPrev');
+    var nextBtn = $('#reelsNext');
+    var railInView = false;
+    var previewing = -1;
+
+    function nearestReel() {
+      var maxLeft = reelsRoot.scrollWidth - reelsRoot.clientWidth;
+      if (reelsRoot.scrollLeft <= 2) return 0;
+      if (reelsRoot.scrollLeft >= maxLeft - 2) return reels.length - 1;
+      var mid = reelsRoot.scrollLeft + reelsRoot.clientWidth / 2;
+      var best = 0, bestD = Infinity;
+      reels.forEach(function (r, i) {
+        var c = r.offsetLeft + r.offsetWidth / 2;
+        var d = Math.abs(c - mid);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return best;
+    }
+    function goTo(i) {
+      i = Math.max(0, Math.min(reels.length - 1, i));
+      var r = reels[i];
+      if (!r) return;
+      var left = r.offsetLeft - (reelsRoot.clientWidth - r.offsetWidth) / 2;
+      left = Math.max(0, Math.min(left, reelsRoot.scrollWidth - reelsRoot.clientWidth));
+      if (reelsRoot.scrollTo) reelsRoot.scrollTo({ left: left, behavior: reduce ? 'auto' : 'smooth' });
+      else reelsRoot.scrollLeft = left;
+    }
+    function stepBy(dir) {
+      var a = reels[0], b = reels[1];
+      var step = (a && b) ? Math.abs(b.offsetLeft - a.offsetLeft) : reelsRoot.clientWidth * 0.8;
+      var maxLeft = reelsRoot.scrollWidth - reelsRoot.clientWidth;
+      var left = Math.max(0, Math.min(reelsRoot.scrollLeft + dir * step, maxLeft));
+      if (reelsRoot.scrollTo) reelsRoot.scrollTo({ left: left, behavior: reduce ? 'auto' : 'smooth' });
+      else reelsRoot.scrollLeft = left;
+    }
+    function setPreview(i) {
+      if (i === previewing) return;
+      reelApi.forEach(function (a, k) { if (a && k !== i) a.rest(); });
+      previewing = i;
+      if (railInView && i >= 0 && reelApi[i]) reelApi[i].preview();
+    }
+    function paintRail() {
+      var i = nearestReel();
+      dots.forEach(function (d, k) {
+        d.classList.toggle('on', k === i);
+        d.setAttribute('aria-selected', k === i ? 'true' : 'false');
+      });
+      var maxLeft = reelsRoot.scrollWidth - reelsRoot.clientWidth;
+      if (prevBtn) prevBtn.disabled = reelsRoot.scrollLeft < 4;
+      if (nextBtn) nextBtn.disabled = reelsRoot.scrollLeft > maxLeft - 4;
+      reelsRoot.classList.toggle('at-start', reelsRoot.scrollLeft < 4);
+      reelsRoot.classList.toggle('at-end', reelsRoot.scrollLeft > maxLeft - 4);
+      setPreview(i);
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { stepBy(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { stepBy(1); });
+    dots.forEach(function (d, i) { d.addEventListener('click', function () { goTo(i); }); });
+
+    reelsRoot.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); stepBy(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); stepBy(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(reels.length - 1); }
     });
-    rail.addEventListener('pointermove', function (e) {
+
+    var railTick = false;
+    reelsRoot.addEventListener('scroll', function () {
+      if (railTick) return;
+      railTick = true;
+      window.requestAnimationFrame(function () { paintRail(); railTick = false; });
+    }, { passive: true });
+    window.addEventListener('resize', paintRail);
+
+    // nothing downloads or plays until the rail is actually on screen
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) {
+        railInView = en[0].isIntersecting;
+        if (railInView) { var i = previewing; previewing = -1; setPreview(i < 0 ? nearestReel() : i); }
+        else { reelApi.forEach(function (a) { if (a) a.rest(); }); previewing = -1; }
+      }, { threshold: 0.35 }).observe(reelsRoot);
+    } else {
+      railInView = true;
+    }
+    paintRail();
+
+    /* drag-to-scroll with a mouse; a real click still gets through because we
+       only swallow it once the pointer has actually travelled. */
+    var down = false, startX = 0, startScroll = 0, moved = 0;
+    reelsRoot.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      down = true; moved = 0; startX = e.clientX; startScroll = reelsRoot.scrollLeft;
+      reelsRoot.classList.add('dragging');
+    });
+    reelsRoot.addEventListener('pointermove', function (e) {
       if (!down) return;
       var dx = e.clientX - startX;
       moved = Math.abs(dx);
-      rail.scrollLeft = startScroll - dx;
+      reelsRoot.scrollLeft = startScroll - dx;
     });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
-      rail.addEventListener(ev, function () { down = false; rail.style.cursor = ''; });
+      reelsRoot.addEventListener(ev, function () { down = false; reelsRoot.classList.remove('dragging'); });
     });
-    rail.addEventListener('click', function (e) {
+    reelsRoot.addEventListener('click', function (e) {
       if (moved > 8) { e.stopPropagation(); e.preventDefault(); }
     }, true);
+
+    /* a trackpad's sideways swipe already works; give a plain wheel one too,
+       but only while the rail still has somewhere to go, so the page keeps
+       scrolling normally at either end. */
+    reelsRoot.addEventListener('wheel', function (e) {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      var maxLeft = reelsRoot.scrollWidth - reelsRoot.clientWidth;
+      if (maxLeft < 4) return;
+      var next = reelsRoot.scrollLeft + e.deltaY;
+      if (next <= 0 || next >= maxLeft) return;
+      e.preventDefault();
+      reelsRoot.scrollLeft = next;
+    }, { passive: false });
   }
 
   /* ---------------- lightbox ---------------- */
