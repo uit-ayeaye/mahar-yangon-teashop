@@ -40,6 +40,34 @@ Colours were sampled directly from the shop's own logo artwork:
 
 Type: **Noto Sans Myanmar** (Burmese), **Fraunces** (display), **Plus Jakarta Sans** (UI).
 
+### The brand name is artwork, not a font
+
+မဟာရန်ကုန် is custom lettering, so no web font reproduces it. Wherever the shop's *name*
+appears it is served as an image cropped from the original logo — never typeset:
+
+| File | What it shows |
+|---|---|
+| `brandtext-{cream,gold,maroon}.png` | မဟာရန်ကုန် alone — used in the nav |
+| `wordmark-{cream,maroon}.png` | Diamond mark + မဟာရန်ကုန် + လက်ဖက်ရည်ဆိုင် — hero, footer, OG |
+| `logo-mark-{cream,gold,maroon}.png` | The diamond monogram alone |
+
+All are paletted PNGs (64 colours) — the full lockup is 5.8 KB, the mark 4 KB.
+Taglines and body copy *are* set in Noto Sans Myanmar; only the name is artwork.
+
+### Icons
+
+There are no emoji anywhere. `index.html` opens with an inline `<symbol>` sprite of
+20 line icons drawn on a 24px grid in the logo's own geometry — thin strokes, rounded
+joins, diamond motifs. Use one with:
+
+```html
+<svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg>
+```
+
+Available: `cup heart home scooter pin phone mail clock play leaf bowl samusa alms
+diamond sparkle cutlery mute sound tiktok facebook`. They inherit `currentColor`, so
+colour them on the parent; size them with `font-size` (the icon is `1em`).
+
 ## Editing the content
 
 Everything is in `index.html`. Bilingual text uses two conventions:
