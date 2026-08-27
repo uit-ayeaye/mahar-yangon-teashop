@@ -493,7 +493,9 @@
         b.setAttribute('aria-selected', on ? 'true' : 'false');
         b.setAttribute('tabindex', on ? '0' : '-1');
       });
-      if (opts.focusToken && tokens[i]) tokens[i].focus();
+      if (opts.focusToken && tokens[i]) {
+        try { tokens[i].focus({ preventScroll: true }); } catch (e) { tokens[i].focus(); }
+      }
       if (opts.syncDial !== false) { dial.sweet = t.sweet; dial.rich = t.rich; paintDial(); }
       if (opts.scroll !== false) centreToken(i);
     }

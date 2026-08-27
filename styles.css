@@ -1316,7 +1316,8 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 .ssteam i:nth-child(2){animation-delay:.55s}
 .ssteam i:nth-child(3){animation-delay:1.1s}
 
-.stage-my{font-family:var(--f-my-dis);font-weight:800;font-size:clamp(1.5rem,5.6vw,2.1rem);line-height:1.5;color:var(--maroon)}
+.stage-my{font-family:var(--f-my-dis);font-weight:800;font-size:clamp(1.5rem,5.6vw,2.1rem);line-height:1.5;
+  color:var(--maroon);max-width:100%;overflow-wrap:break-word}
 .stage-en{font-family:var(--f-hand);font-style:normal;font-weight:700;font-size:1rem;color:var(--wood);letter-spacing:.03em}
 .stage-desc{margin-top:8px;font-size:.96rem;line-height:1.75;opacity:.8;max-width:34ch}
 .stage-desc .t-my{font-size:1rem;line-height:1.95}
@@ -1379,7 +1380,7 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 @media (min-width:720px){.tea-rail{justify-content:center;flex-wrap:wrap}}
 
 .tea-token{
-  flex:none;scroll-snap-align:center;width:clamp(76px,19vw,100px);
+  flex:none;scroll-snap-align:center;width:clamp(76px,19vw,100px);overflow:hidden;
   display:grid;grid-template-rows:auto auto auto;justify-items:center;align-content:start;gap:4px;
   padding:6px 2px;opacity:.5;filter:saturate(.55);
   transition:opacity .45s var(--ease),filter .45s,transform .6s var(--spring);
@@ -1418,8 +1419,10 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 .tea-token .token-ring{position:absolute;inset:auto;top:2px;left:50%;margin-left:calc(clamp(50px,13vw,62px) / -2 - 7px);
   width:calc(clamp(50px,13vw,62px) + 14px);height:calc(clamp(50px,13vw,62px) + 14px)}
 
-.token-my{font-family:var(--f-my-dis);font-weight:800;font-size:.8rem;line-height:1.55;color:var(--maroon);text-align:center;text-wrap:balance}
-.token-en{font-family:var(--f-hand);font-size:.64rem;font-weight:700;color:var(--wood);opacity:.72;text-align:center;line-height:1.3}
+.token-my{font-family:var(--f-my-dis);font-weight:800;font-size:.8rem;line-height:1.55;color:var(--maroon);
+  text-align:center;text-wrap:balance;max-width:100%;min-width:0;overflow-wrap:break-word;hyphens:none}
+.token-en{font-family:var(--f-hand);font-size:.64rem;font-weight:700;color:var(--wood);opacity:.72;
+  text-align:center;line-height:1.3;max-width:100%;min-width:0;overflow-wrap:break-word}
 .tea-token.is-active .token-en{opacity:1;color:var(--gold)}
 
 .tea-hint{
