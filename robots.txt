@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://uit-ayeaye.github.io/mahar-yangon-teashop/sitemap.xml
+Sitemap: https://thomasdlynn.dev/mahar-yangon-teashop/sitemap.xml

@@ -3,7 +3,13 @@
 The official website for **Mahar Yangon Teashop (Nok)** — a family-run Burmese teashop on the
 corner of Thudamar Road & Tandar Street, North Okkalapa Township, Yangon. Established 2009.
 
-**Live:** https://uit-ayeaye.github.io/mahar-yangon-teashop/
+**Live:** https://thomasdlynn.dev/mahar-yangon-teashop/
+
+> This GitHub account has a custom Pages domain (`thomasdlynn.dev`), so project pages are
+> served from there. `https://uit-ayeaye.github.io/mahar-yangon-teashop/` also works — it
+> 301-redirects to the address above. All absolute URLs in `index.html`, `robots.txt` and
+> `sitemap.xml` point at the non-redirecting address so link-preview scrapers resolve the
+> Open Graph image on the first hop.
 
 ---
 
