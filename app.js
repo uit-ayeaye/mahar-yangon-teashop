@@ -221,6 +221,137 @@
     counters.forEach(runCount);
   }
 
+
+  /* ---------------- tea picker ----------------
+     The five tea cards stay in the DOM as the data source and as the
+     no-JS fallback. Here we read them and build a pick-your-cup stage
+     on top, then hide the plain list. */
+  (function buildTeaPicker() {
+    var mount = $('#teaPicker');
+    var grid = $('#teaGrid');
+    if (!mount || !grid) return;
+
+    var teas = $$('.tea-card', grid).map(function (card, i) {
+      var meters = $$('.meter', card).map(function (m) {
+        return {
+          my: m.getAttribute('data-label-my') || '',
+          en: m.getAttribute('data-label-en') || '',
+          value: $$('i.on', m).length,
+          total: $$('i', m).length
+        };
+      });
+      return {
+        i: i,
+        my: ($('b', card) || {}).textContent || '',
+        en: ($('i', card) || {}).textContent || '',
+        descMy: (($('p .t-my', card) || {}).textContent || ''),
+        descEn: (($('p .t-en', card) || {}).textContent || ''),
+        meters: meters
+      };
+    });
+    if (teas.length < 2) return;
+
+    function meterHTML(m) {
+      var pips = '';
+      for (var k = 0; k < m.total; k++) {
+        pips += '<i class="' + (k < m.value ? 'on' : '') + '" style="--k:' + k + '"></i>';
+      }
+      return '<span class="meter" data-label-my="' + m.my + '" data-label-en="' + m.en + '">' + pips + '</span>';
+    }
+
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+
+    mount.innerHTML =
+      '<div class="tea-stage">' +
+        '<span class="stage-glow" aria-hidden="true"></span>' +
+        '<span class="stage-frame" aria-hidden="true"></span>' +
+        '<div class="stage-card" id="teaStageCard" role="tabpanel" aria-live="polite">' +
+          '<span class="stage-index" aria-hidden="true"><b>01</b><i>/</i>' + pad(teas.length) + '</span>' +
+          '<span class="stage-cup"><svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg>' +
+            '<span class="ssteam"><i></i><i></i><i></i></span></span>' +
+          '<b class="stage-my"></b>' +
+          '<i class="stage-en"></i>' +
+          '<p class="stage-desc"><span class="t-my"></span><span class="t-en"></span></p>' +
+          '<div class="stage-meters"></div>' +
+          '<a class="btn btn-gold stage-cta bounce" href="tel:+959882090011">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.6a1 1 0 0 1-.25 1z"/></svg>' +
+            '<span class="t-my">ဒီတစ်ခွက် မှာမယ်</span><span class="t-en">Order this cup</span>' +
+          '</a>' +
+        '</div>' +
+      '</div>' +
+      '<div class="tea-rail" role="tablist" aria-label="Choose your cup">' +
+        teas.map(function (t, i) {
+          return '<button class="tea-token" type="button" role="tab" data-i="' + i + '" ' +
+                 'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+                   '<span class="token-gem"><span class="token-ring" aria-hidden="true"></span>' +
+                     '<svg class="ico" aria-hidden="true"><use href="#i-cup"/></svg></span>' +
+                   '<span class="token-my">' + t.my + '</span>' +
+                   '<span class="token-en">' + t.en + '</span>' +
+                 '</button>';
+        }).join('') +
+      '</div>' +
+      '<p class="tea-hint"><span class="t-my">ခွက်တစ်ခုကို ရွေးကြည့်ပါ</span><span class="t-en">Tap a cup to see how it drinks</span></p>';
+
+    var card = $('#teaStageCard', mount);
+    var tokens = $$('.tea-token', mount);
+    var elMy = $('.stage-my', card), elEn = $('.stage-en', card);
+    var elDescMy = $('.stage-desc .t-my', card), elDescEn = $('.stage-desc .t-en', card);
+    var elMeters = $('.stage-meters', card), elIndex = $('.stage-index b', card);
+    var current = -1;
+
+    function select(i, focusToken) {
+      i = (i + teas.length) % teas.length;
+      if (i === current) return;
+      var t = teas[i];
+      current = i;
+
+      card.classList.remove('swap');
+      void card.offsetWidth;           // restart the entrance animation
+      card.classList.add('swap');
+
+      elMy.textContent = t.my;
+      elEn.textContent = t.en;
+      elDescMy.textContent = t.descMy;
+      elDescEn.textContent = t.descEn;
+      elIndex.textContent = pad(i + 1);
+      elMeters.innerHTML = t.meters.map(meterHTML).join('');
+
+      tokens.forEach(function (b, k) {
+        var on = k === i;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+        b.setAttribute('tabindex', on ? '0' : '-1');
+      });
+      if (focusToken && tokens[i]) tokens[i].focus();
+      var t2 = tokens[i];
+      if (t2 && t2.scrollIntoView) t2.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    tokens.forEach(function (b) {
+      b.addEventListener('click', function () { select(parseInt(b.getAttribute('data-i'), 10)); });
+      b.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); select(current + 1, true); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); select(current - 1, true); }
+        else if (e.key === 'Home') { e.preventDefault(); select(0, true); }
+        else if (e.key === 'End') { e.preventDefault(); select(teas.length - 1, true); }
+      });
+    });
+
+    // swipe the stage to move between cups
+    var sx = 0, sy = 0;
+    card.addEventListener('touchstart', function (e) {
+      sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
+    }, { passive: true });
+    card.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) select(current + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    grid.setAttribute('hidden', '');
+    mount.removeAttribute('hidden');
+    select(0);
+  })();
+
   /* ---------------- reels ---------------- */
   var reels = $$('.reel');
   var allReelVideos = [];
@@ -401,6 +532,76 @@
         b.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
       });
     });
+  }
+
+
+  /* ---------------- motion polish ----------------
+     Pointer-driven flourishes for devices that actually have a pointer.
+     All of it is skipped under prefers-reduced-motion and on touch. */
+  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (!reduce && finePointer) {
+    // buttons lean toward the cursor
+    $$('.btn.bounce, .stage-cta').forEach(function (b) {
+      var raf = null;
+      function move(e) {
+        if (raf) return;
+        raf = window.requestAnimationFrame(function () {
+          raf = null;
+          var r = b.getBoundingClientRect();
+          var dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+          var dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+          b.style.setProperty('--pull-x', (dx * 7).toFixed(2) + 'px');
+          b.style.setProperty('--pull-y', (dy * 5).toFixed(2) + 'px');
+        });
+      }
+      b.addEventListener('pointermove', move);
+      b.addEventListener('pointerleave', function () {
+        b.style.setProperty('--pull-x', '0px');
+        b.style.setProperty('--pull-y', '0px');
+      });
+    });
+
+    // cards tip very slightly toward the cursor
+    $$('.dish, .vcard, .pillars li, .tea-token, .ph').forEach(function (c) {
+      var raf = null;
+      c.addEventListener('pointermove', function (e) {
+        if (raf) return;
+        raf = window.requestAnimationFrame(function () {
+          raf = null;
+          var r = c.getBoundingClientRect();
+          var px = (e.clientX - r.left) / r.width - 0.5;
+          var py = (e.clientY - r.top) / r.height - 0.5;
+          c.style.setProperty('--tilt-x', (-py * 5).toFixed(2) + 'deg');
+          c.style.setProperty('--tilt-y', (px * 5).toFixed(2) + 'deg');
+        });
+      });
+      c.addEventListener('pointerleave', function () {
+        c.style.setProperty('--tilt-x', '0deg');
+        c.style.setProperty('--tilt-y', '0deg');
+      });
+    });
+  }
+
+  // hero drifts a touch slower than the page beneath it
+  if (!reduce) {
+    var heroInner = $('.hero-inner');
+    var heroSec = $('.hero');
+    if (heroInner && heroSec) {
+      var pTick = false;
+      window.addEventListener('scroll', function () {
+        if (pTick) return;
+        pTick = true;
+        window.requestAnimationFrame(function () {
+          pTick = false;
+          var y = window.scrollY || 0;
+          if (y > window.innerHeight) return;
+          var k = Math.min(y / window.innerHeight, 1);
+          heroInner.style.transform = 'translate3d(0,' + (k * 46).toFixed(1) + 'px,0)';
+          heroInner.style.opacity = String(Math.max(1 - k * 1.15, 0));
+        });
+      }, { passive: true });
+    }
   }
 
   /* ---------------- misc ---------------- */
