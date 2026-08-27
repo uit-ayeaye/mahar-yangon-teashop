@@ -467,6 +467,7 @@ h1,h2,h3,p{margin:0}
   background:linear-gradient(180deg,transparent,rgba(42,14,9,.92));color:var(--cream);
   opacity:0;transform:translateY(10px);transition:opacity .4s,transform .5s var(--spring);
 }
+.ph figcaption{z-index:3}
 .ph:hover figcaption,.ph:focus-visible figcaption{opacity:1;transform:none}
 .ph figcaption .b-my{font-family:var(--f-my);font-weight:700;font-size:.86rem;line-height:1.6}
 .ph figcaption .b-en{font-family:var(--f-dis);font-style:italic;font-size:.72rem;color:var(--gold-2);opacity:.9}
@@ -675,4 +676,163 @@ h1,h2,h3,p{margin:0}
 }
 @media (max-width:340px){
   .nav-name{display:none}
+}
+
+/* =========================================================
+   BRAND ICON SET — line art in the logo's geometry
+   ========================================================= */
+.icon-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ico{
+  width:1em;height:1em;display:block;
+  fill:none;stroke:currentColor;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;overflow:visible;
+}
+.ico use{fill:inherit;stroke:inherit}
+.ico[data-solid]{stroke-width:0;fill:currentColor}
+
+/* --- nav wordmark: the shop's own lettering, not a system font --- */
+.nav-word{height:26px;width:auto;display:block;transition:transform .6s var(--spring)}
+.nav-brand:hover .nav-word{transform:translateY(-1px) scale(1.03)}
+
+/* --- pillar icons: gold disc with a diamond halo --- */
+.pill-ico{
+  --sz:46px;
+  width:var(--sz);height:var(--sz);display:grid;place-items:center;margin-bottom:12px;
+  border-radius:14px;position:relative;color:var(--gold);
+  background:linear-gradient(150deg,rgba(217,164,65,.2),rgba(217,164,65,.06));
+  border:1px solid rgba(217,164,65,.42);
+  transition:transform .55s var(--spring),background .35s,color .35s,border-color .35s,box-shadow .4s;
+}
+.pill-ico .ico{font-size:24px}
+.pill-ico::after{
+  content:"";position:absolute;inset:-5px;border-radius:18px;border:1px solid rgba(217,164,65,.3);
+  opacity:0;transform:scale(.86) rotate(45deg);transition:opacity .5s,transform .6s var(--spring);
+}
+.pillars li:hover .pill-ico{
+  transform:translateY(-4px) rotate(-6deg) scale(1.08);
+  background:var(--gold);color:var(--maroon);border-color:var(--gold);
+  box-shadow:0 12px 26px rgba(217,164,65,.42);
+}
+.pillars li:hover .pill-ico::after{opacity:1;transform:scale(1) rotate(0)}
+
+/* --- visit card icons --- */
+.vico{
+  --sz:50px;
+  width:var(--sz);height:var(--sz);display:grid;place-items:center;margin-bottom:12px;
+  border-radius:15px;color:var(--gold-2);position:relative;
+  background:linear-gradient(150deg,rgba(217,164,65,.18),rgba(217,164,65,.05));
+  border:1px solid rgba(217,164,65,.36);
+  transition:transform .55s var(--spring),background .35s,color .35s,border-color .35s,box-shadow .4s;
+  font-size:0;
+}
+.vico .ico{font-size:25px}
+.vcard:hover .vico{
+  transform:translateY(-3px) rotate(-7deg) scale(1.1);
+  background:var(--gold);color:var(--maroon);border-color:var(--gold);
+  box-shadow:0 12px 28px rgba(217,164,65,.4);
+}
+.vcard.grab:hover .vico{background:#00B14F;border-color:#00B14F;color:#fff;box-shadow:0 12px 28px rgba(0,177,79,.42)}
+.vcard.tiktok:hover .vico{background:#FF3B5C;border-color:#FF3B5C;color:#fff;box-shadow:0 12px 28px rgba(255,59,92,.4)}
+
+/* --- dock icons --- */
+.dock-ico{font-size:21px;margin-inline:auto}
+.dock a span{display:grid;place-items:center;height:23px}
+.dock a{color:var(--cream)}
+.dock a:active .dock-ico{transform:scale(.9)}
+
+/* --- reel sound badge --- */
+.reel-sound .ico{font-size:16px;color:var(--cream)}
+
+/* --- footer inline icon --- */
+.ico-sm{font-size:15px;display:inline-block;vertical-align:-2px;color:var(--gold-2)}
+.foot-made{display:inline-flex;align-items:center;gap:7px}
+
+/* =========================================================
+   NICHE CARD TREATMENT — gold diamond corners echoing the logo
+   ========================================================= */
+.dish,.vcard,.pillars li,.phone,.ph{position:relative}
+
+/* diamond corner ticks, drawn from the logo's frame motif */
+.dish::before,.dish::after,
+.vcard::before,.vcard::after{
+  content:"";position:absolute;width:9px;height:9px;pointer-events:none;
+  border:1px solid var(--gold);transform:rotate(45deg);
+  opacity:0;transition:opacity .45s var(--ease),transform .6s var(--spring);
+}
+.dish::before,.vcard::before{top:12px;left:12px}
+.dish::after,.vcard::after{bottom:12px;right:12px}
+.dish:hover::before,.vcard:hover::before{opacity:.85;transform:rotate(45deg) translate(-2px,-2px)}
+.dish:hover::after,.vcard:hover::after{opacity:.85;transform:rotate(45deg) translate(2px,2px)}
+.dish::before{z-index:3}
+
+/* card entrance stagger — each card springs in a beat after the last */
+.menu-grid > .dish.in{animation:cardIn .8s var(--spring) backwards}
+.menu-grid > .dish:nth-child(1).in{animation-delay:.02s}
+.menu-grid > .dish:nth-child(2).in{animation-delay:.10s}
+.menu-grid > .dish:nth-child(3).in{animation-delay:.18s}
+.menu-grid > .dish:nth-child(4).in{animation-delay:.26s}
+.menu-grid > .dish:nth-child(5).in{animation-delay:.34s}
+.menu-grid > .dish:nth-child(6).in{animation-delay:.42s}
+@keyframes cardIn{
+  0%{opacity:0;transform:translateY(34px) scale(.94)}
+  60%{opacity:1;transform:translateY(-6px) scale(1.015)}
+  100%{opacity:1;transform:none}
+}
+.pillars li.in,.visit-cards > .in{animation:cardIn .75s var(--spring) backwards}
+.pillars li:nth-child(2).in{animation-delay:.08s}
+.pillars li:nth-child(3).in{animation-delay:.16s}
+.pillars li:nth-child(4).in{animation-delay:.24s}
+.visit-cards > *:nth-child(2).in{animation-delay:.07s}
+.visit-cards > *:nth-child(3).in{animation-delay:.14s}
+.visit-cards > *:nth-child(4).in{animation-delay:.21s}
+.visit-cards > *:nth-child(5).in{animation-delay:.28s}
+.visit-cards > *:nth-child(6).in{animation-delay:.35s}
+
+/* chips get a springy pop-in */
+.chips li{animation:chipIn .6s var(--spring) backwards;animation-play-state:paused}
+.toppings.in .chips li{animation-play-state:running}
+@keyframes chipIn{0%{opacity:0;transform:translateY(14px) scale(.8)}100%{opacity:1;transform:none}}
+.chips li:nth-child(1){animation-delay:.04s}.chips li:nth-child(2){animation-delay:.09s}
+.chips li:nth-child(3){animation-delay:.14s}.chips li:nth-child(4){animation-delay:.19s}
+.chips li:nth-child(5){animation-delay:.24s}.chips li:nth-child(6){animation-delay:.29s}
+.chips li:nth-child(7){animation-delay:.34s}.chips li:nth-child(8){animation-delay:.39s}
+.chips li:nth-child(9){animation-delay:.44s}.chips li:nth-child(10){animation-delay:.49s}
+
+/* gold sweep across a card on hover — a welcoming "shine" */
+.dish .dish-img::before,.ph::before{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(251,238,196,.22) 50%,transparent 62%);
+  transform:translateX(-120%);transition:transform .95s var(--ease);
+}
+.dish:hover .dish-img::before,.ph:hover::before{transform:translateX(120%)}
+
+/* section headings get a small diamond flourish */
+.sec-head .h-sec{position:relative}
+.eyebrow::before{
+  content:"";width:8px;height:8px;border:1px solid currentColor;transform:rotate(45deg);
+  display:inline-block;flex:none;opacity:.85;
+}
+
+/* price tag gets a gentle attention pulse */
+.tag.price{animation:tagPulse 3.4s ease-in-out infinite}
+@keyframes tagPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(217,164,65,.5)}
+  50%{box-shadow:0 0 0 9px rgba(217,164,65,0)}
+}
+
+/* buttons: a soft welcoming glow that breathes */
+.btn-gold{animation:goldBreathe 4.5s ease-in-out infinite}
+@keyframes goldBreathe{
+  0%,100%{box-shadow:0 8px 26px rgba(217,164,65,.34)}
+  50%{box-shadow:0 10px 34px rgba(217,164,65,.55)}
+}
+.btn:hover{animation:none}
+
+/* reels: playing card gets a warm gold ring */
+.phone.playing{border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,164,65,.25),var(--sh-2)}
+
+@media (prefers-reduced-motion:reduce){
+  .menu-grid > .dish.in,.pillars li.in,.visit-cards > .in,.chips li{animation:none!important}
+  .tag.price,.btn-gold{animation:none!important}
+  .dish .dish-img::before,.ph::before{display:none}
 }

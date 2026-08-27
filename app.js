@@ -229,7 +229,9 @@
       if (!vid.getAttribute('src')) { vid.setAttribute('src', src); vid.load(); }
     }
     function setSoundIcon() {
-      if (sound) sound.textContent = vid.muted ? '🔇' : '🔊';
+      if (!sound) return;
+      var u = sound.querySelector('use');
+      if (u) u.setAttribute('href', vid.muted ? '#i-mute' : '#i-sound');
     }
 
     // tap = play, and unmute (this is a user gesture, so sound is allowed)
