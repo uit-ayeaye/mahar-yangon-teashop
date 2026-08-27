@@ -671,7 +671,8 @@ h1,h2,h3,p{margin:0}
   .lt-labels{display:none}                  /* compact toggle: just the switch */
   .lang-toggle{padding:7px 9px}
   .nav-actions{gap:8px}
-  .hero-est{font-size:.6rem;letter-spacing:.2em;gap:8px}
+  .hero-est{font-size:.62rem;letter-spacing:.06em;gap:7px;flex-wrap:nowrap;white-space:nowrap}
+  .hero-est .rule{width:clamp(14px,5vw,34px)}
   .hero-logo img{width:min(80vw,420px)}
   .hero-cta .btn{flex:1 1 100%;justify-content:center}
   .hero-stats{gap:14px}

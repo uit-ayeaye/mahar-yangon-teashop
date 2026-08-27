@@ -20,7 +20,7 @@ HTML, CSS and JavaScript — no build step, no framework, no dependencies.
 
 | Path | What it is |
 |---|---|
-| `index.html` | The whole page: markup, SEO meta, Open Graph tags, JSON-LD |
+| `index.html` | The whole page: markup, SEO meta, Open Graph tags, JSON-LD, icon sprite |
 | `styles.css` | Design tokens, layout, and every animation |
 | `app.js` | Language toggle, scroll reveals, reels player, lightbox |
 | `assets/img/` | Photos (JPG + WebP) and video poster frames |
@@ -38,7 +38,17 @@ Colours were sampled directly from the shop's own logo artwork:
 | `--gold` | `#D9A441` | Accents, buttons |
 | `--paper` | `#FFF8EA` | Light sections |
 
-Type: **Noto Sans Myanmar** (Burmese), **Fraunces** (display), **Plus Jakarta Sans** (UI).
+### Type
+
+| Role | Face | Why |
+|---|---|---|
+| Burmese headings | **Noto Serif Myanmar** | Calligraphic stroke flare — sits naturally beside the logo lettering |
+| Burmese body | **Padauk** | Rounder and friendlier than Noto Sans at small sizes |
+| Latin display | **Fraunces** (`SOFT 100`, `WONK 1`) | Soft, slightly imperfect — reads hand-cut, not corporate |
+| Latin body | **Nunito** | Rounded terminals, warm, very legible |
+| Accents | **Shantell Sans** | The handwritten touches: eyebrows, tags, prices, stat labels |
+
+Roughly 280 KB of fonts over 4 files — browsers fetch only the subsets they need.
 
 ### The brand name is artwork, not a font
 
@@ -77,6 +87,13 @@ Everything is in `index.html`. Bilingual text uses two conventions:
 
 So to change a dish description, edit both the `.t-my` and `.t-en` spans on that card.
 
+### Cache versioning
+
+`styles.css` and `app.js` are linked with a `?v=YYYYMMDDx` query. GitHub Pages
+serves assets with `max-age=600`, so **bump that version whenever you edit either
+file** — otherwise returning visitors can see up to ten minutes of stale styling
+against fresh markup. Both links are in the `<head>` and the closing `<script>`.
+
 ### Things worth keeping current
 
 - **Opening hours** — the site currently says "Open daily, call for today's hours."
@@ -84,7 +101,11 @@ So to change a dish description, edit both the `.t-my` and `.t-en` spans on that
 - **GrabFood link** — points at `https://food.grab.com/mm/en/` with a "search Mahar Yangon"
   note. Replace with the real merchant deep-link once you have it (appears in `#visit`
   and in the mobile dock).
-- **Prices** — only the verified samusa price (1,000 Ks) is shown.
+- **Prices** — only the verified samusa price (1,000 Ks) is shown; every other dish
+  reads "ask us". Fill them in on the `.dish-price` spans in the `#menu` section.
+- **Tea guide** (`#tea`) describes how Myanmar teashops are ordered from generally —
+  ချိုဆိမ့်, ပေါ့ဆိမ့်, ချိုပေါ့, ပေါ့ကြမ်း, ကျောက်ပါဒေါင်. If the shop uses different
+  names, edit the `.tea-card` entries.
 
 ## Local preview
 
