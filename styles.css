@@ -19,9 +19,15 @@
   --wood:#8B5D46;
   --terra:#AD7762;
 
-  --f-my:"Noto Sans Myanmar","Padauk","Myanmar Text","Pyidaungsu",sans-serif;
+  /* Burmese: a calligraphic face for names and headings, a warm humanist one for reading */
+  --f-my:"Padauk","Noto Sans Myanmar","Myanmar Text","Pyidaungsu",sans-serif;
+  --f-my-dis:"Noto Serif Myanmar","Padauk","Myanmar Text","Pyidaungsu",serif;
+  /* Latin: hand-cut display, rounded body, and a marker hand for warm accents */
   --f-dis:"Fraunces",Georgia,"Times New Roman",serif;
-  --f-ui:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --f-ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --f-hand:"Shantell Sans","Nunito",-apple-system,"Segoe UI",cursive;
+  /* Fraunces' soft + wonk axes give headings a hand-cut, slightly imperfect warmth */
+  --wonk:"SOFT" 100,"WONK" 1;
 
   --wrap:1180px;
   --r-s:14px; --r-m:22px; --r-l:32px; --r-xl:44px;
@@ -836,3 +842,246 @@ h1,h2,h3,p{margin:0}
   .tag.price,.btn-gold{animation:none!important}
   .dish .dish-img::before,.ph::before{display:none}
 }
+
+/* =========================================================
+   TYPE PASS 2 — hand-crafted, warm, family teahouse
+   Burmese headings use the calligraphic Noto Serif Myanmar so they
+   sit next to the shop's own lettering; body copy uses Padauk, which
+   is rounder and friendlier at small sizes. Latin display gets
+   Fraunces' SOFT/WONK axes; accents use a marker hand.
+   ========================================================= */
+body{font-family:var(--f-ui);letter-spacing:.002em}
+.t-my,.b-my{font-family:var(--f-my);line-height:1.9}
+
+/* --- Burmese headings: calligraphic --- */
+.h-sec .b-my,.h-sub .b-my,.hero-title .b-my{
+  font-family:var(--f-my-dis);font-weight:700;letter-spacing:0;
+}
+.h-sec .b-my{line-height:1.55}
+.dish-body h3 .b-my,.vcard .b-my,.reel h3 .b-my,
+.pillars .b-my,.foot-links .b-my,.foot-contact .b-my,.art-badge .b-my{
+  font-family:var(--f-my-dis);font-weight:700;
+}
+
+/* --- Latin display: hand-cut --- */
+.h-sec .b-en,.h-sub .b-en,.hero-title .b-en,.dish-body h3 .b-en,
+.reel h3 .b-en,.pillars .b-en,.vcard .b-en,.foot-links .b-en,
+.foot-contact .b-en,.art-badge .b-en,.cater-list .b-en{
+  font-family:var(--f-dis);font-variation-settings:var(--wonk);
+}
+.hero-stats b{font-family:var(--f-dis);font-variation-settings:var(--wonk)}
+
+/* --- handwritten accents: the warm, human touches --- */
+.eyebrow,.tag,.tag.price,.tag.price small,.hero-est,
+.hero-stats span,.dock a i,.hero-scroll,.chips .b-en,
+.art-badge .b-en,.foot-made,.vlink{
+  font-family:var(--f-hand);
+}
+.eyebrow{
+  font-size:.9rem;font-weight:700;letter-spacing:.06em;text-transform:none;
+}
+.eyebrow .b-my{font-family:var(--f-my);font-size:.95rem;font-weight:700}
+.hero-est{font-size:.76rem;font-weight:700;letter-spacing:.16em;text-transform:none}
+.hero-stats span{font-size:.76rem;letter-spacing:.02em;text-transform:none;font-weight:600}
+.hero-stats .b-my{font-family:var(--f-my);font-size:.76rem}
+.tag{font-family:var(--f-hand);font-size:.82rem;font-weight:700;letter-spacing:0}
+.tag .t-my{font-family:var(--f-my);font-weight:700}
+.tag.price{font-family:var(--f-hand);font-weight:700;font-size:1rem}
+.tag.price small{font-family:var(--f-hand);font-weight:600}
+.tag.price small .t-my{font-family:var(--f-my)}
+.dock a i{font-size:.7rem;font-weight:700}
+.dock a i.t-my{font-family:var(--f-my)}
+.hero-scroll{font-family:var(--f-hand);font-size:.76rem;letter-spacing:.02em}
+.hero-scroll .b-my{font-family:var(--f-my)}
+.chips .b-en{font-family:var(--f-hand);font-size:.76rem;letter-spacing:.02em;text-transform:none;font-weight:600}
+.vlink{font-family:var(--f-hand);font-weight:700;font-size:.86rem;letter-spacing:.01em}
+.vlink .t-my{font-family:var(--f-my);font-weight:700}
+.art-badge .b-en{font-family:var(--f-hand);font-style:normal;font-weight:700;font-size:.78rem}
+.foot-made{font-family:var(--f-hand);font-weight:600}
+.foot-made .t-my{font-family:var(--f-my)}
+
+/* Padauk sits a little small — nudge Burmese body copy up so the two
+   scripts read at the same optical size */
+.t-my{font-size:1.04em}
+.rich p .t-my,.sec-lede .t-my,.hero-sub .t-my{font-size:1.06em;line-height:1.95}
+
+/* =========================================================
+   MENU PASS 2 — cream paper cards pinned on the maroon wall
+   ========================================================= */
+.menu-grid{gap:clamp(18px,2.6vw,26px)}
+.dish{
+  background:linear-gradient(168deg,#FFFaf0 0%,var(--paper-2) 100%);
+  border:1px solid rgba(63,23,15,.12);
+  border-radius:26px;
+  box-shadow:0 16px 40px rgba(20,7,4,.34);
+  overflow:hidden;
+}
+.dish:hover{
+  transform:translateY(-13px) rotate(-.5deg) scale(1.02);
+  border-color:rgba(217,164,65,.75);
+  box-shadow:0 30px 66px rgba(20,7,4,.46);
+}
+.dish:nth-child(even):hover{transform:translateY(-13px) rotate(.5deg) scale(1.02)}
+
+/* photo sits in a rounded window with a warm mat around it */
+.dish-img{
+  aspect-ratio:1/1;margin:12px 12px 0;border-radius:18px;
+  border:1px solid rgba(63,23,15,.1);background:var(--sand);
+}
+.dish-img::after{
+  background:linear-gradient(180deg,transparent 55%,rgba(63,23,15,.28) 100%);
+}
+.dish-body{margin-top:0;padding:16px 20px 22px;color:var(--maroon)}
+
+/* name, then a dotted leader, then the price — like a written menu */
+.dish-head{display:flex;align-items:baseline;gap:9px;width:100%}
+.dish-head .b-my{display:inline;flex:0 1 auto;min-width:0}
+.dish-body h3 .b-my{color:var(--maroon);font-size:1.2rem;line-height:1.55}
+.dish-body h3 .b-en{color:var(--wood);opacity:.9;font-size:.86rem;margin-top:1px}
+.dish-body p{color:var(--maroon);opacity:.74;margin-top:10px}
+
+.leader{
+  flex:1 1 auto;height:1px;min-width:14px;align-self:baseline;position:relative;top:-.32em;
+  background-image:radial-gradient(circle,rgba(63,23,15,.42) 1px,transparent 1px);
+  background-size:6px 2px;background-repeat:repeat-x;opacity:.8;
+}
+.dish-price{
+  flex:none;font-family:var(--f-hand);font-weight:700;
+  font-size:1.12rem;color:var(--maroon);white-space:nowrap;line-height:1.3;
+}
+.dish-price small{display:block;font-size:.66rem;font-weight:600;opacity:.6;text-align:right}
+.dish-price small .t-my{font-family:var(--f-my)}
+.dish-price.ask{font-size:.92rem;opacity:.72}
+
+/* a hand-drawn underline that draws itself in when the card arrives */
+.dish-body h3::after{
+  content:"";display:block;height:5px;width:0;margin-top:7px;
+  background:no-repeat left center/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 6' preserveAspectRatio='none'%3E%3Cpath d='M1 4.2C22 1.6 44 1.2 66 2.4c18 1 35 2.2 53 1.1' fill='none' stroke='%23D9A441' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  transition:width .7s var(--ease) .15s;
+}
+.dish.in .dish-body h3::after{width:64px}
+.dish:hover .dish-body h3::after{width:100%}
+
+/* tags read as pencilled notes on the card */
+.dish .tag{
+  background:rgba(217,164,65,.2);border:1px dashed rgba(63,23,15,.32);color:var(--maroon);
+}
+.dish .tag.price{background:var(--gold);border-style:solid;border-color:var(--gold);color:var(--maroon)}
+.dish::before,.dish::after{border-color:var(--wood)}
+.dish .steam-mini i{background:linear-gradient(to top,rgba(255,255,255,.95),transparent)}
+
+/* pin the card to the wall with a little brass tack */
+.dish .tack{
+  position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  width:16px;height:16px;border-radius:50%;z-index:4;
+  background:radial-gradient(circle at 35% 30%,var(--gold-2),var(--gold) 55%,#9d7327 100%);
+  box-shadow:0 3px 7px rgba(20,7,4,.5),inset 0 -1px 2px rgba(0,0,0,.28);
+  transition:transform .5s var(--spring);
+}
+.dish:hover .tack{transform:translateX(-50%) scale(1.16) rotate(12deg)}
+
+@media (max-width:560px){
+  .dish-img{aspect-ratio:4/3}
+  .dish-price{font-size:1.05rem}
+}
+
+/* =========================================================
+   TEA GUIDE — how Yangon actually orders a cup
+   ========================================================= */
+.sec-tea{
+  background:
+    radial-gradient(90% 60% at 12% 0%,rgba(217,164,65,.20),transparent 58%),
+    radial-gradient(80% 60% at 92% 100%,rgba(173,119,98,.22),transparent 60%),
+    linear-gradient(170deg,var(--paper) 0%,var(--sand) 100%);
+  color:var(--maroon);
+}
+.sec-head.center{margin-inline:auto;text-align:center;max-width:760px}
+.sec-head.center .eyebrow{justify-content:center}
+.sec-head.center .sec-lede{margin-inline:auto}
+
+.tea-leaf{position:absolute;color:var(--wood);opacity:.13;pointer-events:none;font-size:150px}
+.tea-leaf .ico{stroke-width:1}
+.tea-leaf.l1{top:6%;left:-42px;transform:rotate(-18deg);animation:floaty 9s ease-in-out infinite}
+.tea-leaf.l2{bottom:5%;right:-46px;transform:rotate(150deg);animation:floaty 11s ease-in-out infinite reverse}
+
+.tea-grid{
+  display:grid;gap:16px;margin-top:clamp(26px,4vw,40px);
+  grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+}
+.tea-card{
+  position:relative;display:grid;align-content:start;gap:2px;
+  padding:24px 20px 20px;border-radius:24px;
+  background:linear-gradient(168deg,#FFFCF4 0%,#FFF4E0 100%);
+  border:1px solid rgba(63,23,15,.12);box-shadow:0 12px 30px rgba(63,23,15,.13);
+  transition:transform .55s var(--spring),box-shadow .45s,border-color .35s;
+}
+.tea-card:hover{
+  transform:translateY(-10px) rotate(-.6deg) scale(1.025);
+  border-color:rgba(217,164,65,.75);box-shadow:0 26px 54px rgba(63,23,15,.22);
+}
+.tea-card:nth-child(even):hover{transform:translateY(-10px) rotate(.6deg) scale(1.025)}
+.tea-ico{
+  width:46px;height:46px;display:grid;place-items:center;margin-bottom:10px;
+  border-radius:14px;color:var(--gold);
+  background:linear-gradient(150deg,rgba(217,164,65,.22),rgba(217,164,65,.07));
+  border:1px solid rgba(217,164,65,.45);
+  transition:transform .55s var(--spring),background .35s,color .3s;
+}
+.tea-ico .ico{font-size:25px}
+.tea-card:hover .tea-ico{transform:rotate(-8deg) scale(1.1);background:var(--gold);color:var(--maroon)}
+.tea-card b{font-family:var(--f-my-dis);font-weight:700;font-size:1.28rem;line-height:1.5;display:block}
+.tea-card i{
+  font-family:var(--f-hand);font-style:normal;font-weight:700;font-size:.86rem;
+  color:var(--wood);display:block;margin-bottom:9px;letter-spacing:.02em;
+}
+.tea-card p{font-size:.9rem;line-height:1.7;opacity:.78;margin-bottom:13px}
+.tea-card p .t-my{font-size:.92rem;line-height:1.9}
+
+/* strength meters drawn as the logo's diamonds */
+.meter{display:flex;align-items:center;gap:5px;margin-top:5px}
+.meter::before{
+  content:attr(data-label-en);flex:none;width:52px;
+  font-family:var(--f-hand);font-size:.72rem;font-weight:700;color:var(--wood);opacity:.85;
+}
+[data-lang="my"] .meter::before{content:attr(data-label-my);font-family:var(--f-my)}
+.meter i{
+  width:10px;height:10px;flex:none;transform:rotate(45deg);border-radius:2px;
+  border:1px solid rgba(63,23,15,.34);background:transparent;
+  transition:background .4s var(--ease),transform .5s var(--spring),border-color .3s;
+}
+.meter i.on{background:var(--gold);border-color:var(--gold)}
+.tea-card:hover .meter i.on{transform:rotate(45deg) scale(1.22)}
+.tea-card:hover .meter i.on:nth-child(2){transition-delay:.04s}
+.tea-card:hover .meter i.on:nth-child(3){transition-delay:.08s}
+.tea-card:hover .meter i.on:nth-child(4){transition-delay:.12s}
+.tea-card:hover .meter i.on:nth-child(5){transition-delay:.16s}
+
+.tea-note{
+  display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  margin:clamp(26px,4vw,38px) auto 0;max-width:640px;text-align:center;
+  padding:16px 22px;border-radius:999px;
+  background:rgba(63,23,15,.06);border:1px dashed rgba(63,23,15,.28);
+  font-family:var(--f-hand);font-size:.98rem;font-weight:600;
+}
+.tea-note .t-my{font-family:var(--f-my);font-weight:700}
+.tea-note .ico{font-size:20px;color:var(--gold);flex:none}
+.tea-note b{font-weight:700;color:var(--maroon)}
+
+@media (max-width:520px){
+  .tea-grid{grid-template-columns:1fr}
+  .tea-leaf{font-size:110px}
+}
+
+/* --- back to top (the page is a long scroll by design) --- */
+.to-top{
+  position:fixed;right:22px;bottom:26px;z-index:99;display:none;
+  width:50px;height:50px;border-radius:50%;place-items:center;
+  color:var(--maroon);background:var(--gold);
+  box-shadow:0 10px 28px rgba(217,164,65,.45);
+  opacity:0;transform:translateY(18px) scale(.85);pointer-events:none;
+  transition:opacity .4s var(--ease),transform .55s var(--spring),background .3s;
+}
+.to-top .ico{font-size:22px;stroke-width:2.2}
+.to-top.show{opacity:1;transform:none;pointer-events:auto}
+.to-top:hover{transform:translateY(-4px) scale(1.09);background:var(--gold-2)}
+@media (min-width:901px){.to-top{display:grid}}

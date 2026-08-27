@@ -76,11 +76,19 @@
     });
   }
 
+  var toTop = $('#toTop');
+  if (toTop) {
+    toTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+
   var ticking = false;
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
     if (nav) nav.classList.toggle('stuck', y > 40);
     if (dock) dock.classList.toggle('show', y > 420);
+    if (toTop) toTop.classList.toggle('show', y > 900);
     if (bar) {
       var h = doc.documentElement.scrollHeight - window.innerHeight;
       bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(y / h, 1) : 0) + ')';
