@@ -21,7 +21,11 @@
 
   /* Burmese: a calligraphic face for names and headings, a warm humanist one for reading */
   --f-my:"Padauk","Noto Sans Myanmar","Myanmar Text","Pyidaungsu",sans-serif;
-  --f-my-dis:"Noto Serif Myanmar","Padauk","Myanmar Text","Pyidaungsu",serif;
+  /* Display Burmese. PDA18-Stone is a hand-drawn Myanmar face many people in
+     Myanmar already have installed; naming it here costs nothing and costs no
+     licence, and anyone without it falls straight through to Noto Serif Myanmar,
+     which is the most characterful Burmese face that is free to embed. */
+  --f-my-dis:"PDA18-Stone","Noto Serif Myanmar","Padauk","Myanmar Text","Pyidaungsu",serif;
   /* Latin: hand-cut display, rounded body, and a marker hand for warm accents */
   --f-dis:"Fraunces",Georgia,"Times New Roman",serif;
   --f-ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -856,12 +860,12 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 
 /* --- Burmese headings: calligraphic --- */
 .h-sec .b-my,.h-sub .b-my,.hero-title .b-my{
-  font-family:var(--f-my-dis);font-weight:700;letter-spacing:0;
+  font-family:var(--f-my-dis);font-weight:900;letter-spacing:0;
 }
 .h-sec .b-my{line-height:1.55}
 .dish-body h3 .b-my,.vcard .b-my,.reel h3 .b-my,
 .pillars .b-my,.foot-links .b-my,.foot-contact .b-my,.art-badge .b-my{
-  font-family:var(--f-my-dis);font-weight:700;
+  font-family:var(--f-my-dis);font-weight:800;
 }
 
 /* --- Latin display: hand-cut --- */
@@ -1030,7 +1034,7 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 }
 .tea-ico .ico{font-size:25px}
 .tea-card:hover .tea-ico{transform:rotate(-8deg) scale(1.1);background:var(--gold);color:var(--maroon)}
-.tea-card b{font-family:var(--f-my-dis);font-weight:700;font-size:1.28rem;line-height:1.5;display:block}
+.tea-card b{font-family:var(--f-my-dis);font-weight:800;font-size:1.28rem;line-height:1.5;display:block}
 .tea-card i{
   font-family:var(--f-hand);font-style:normal;font-weight:700;font-size:.86rem;
   color:var(--wood);display:block;margin-bottom:9px;letter-spacing:.02em;
@@ -1086,3 +1090,35 @@ body{font-family:var(--f-ui);letter-spacing:.002em}
 .to-top.show{opacity:1;transform:none;pointer-events:auto}
 .to-top:hover{transform:translateY(-4px) scale(1.09);background:var(--gold-2)}
 @media (min-width:901px){.to-top{display:grid}}
+
+/* =========================================================
+   BLUR-UP PLACEHOLDERS
+   Each photo carries a 24px inline preview of itself, so a card is
+   never an empty box while the real image is still on the wire —
+   which is what a Yangon visitor on mobile data sees most.
+   ========================================================= */
+.dish-img[style*="--lqip"],
+.ph[style*="--lqip"]{
+  background-image:var(--lqip);
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+}
+.dish-img[style*="--lqip"]::before,
+.ph[style*="--lqip"]::before{
+  /* keep the existing shine sweep, but sit it above the blurred preview */
+  z-index:2;
+}
+.dish-img[style*="--lqip"] img,
+.ph[style*="--lqip"] img{
+  animation:sharpen .55s var(--ease) both;
+}
+@keyframes sharpen{
+  from{opacity:0;filter:blur(8px);transform:scale(1.04)}
+  to{opacity:1;filter:none;transform:none}
+}
+/* the blurred preview should read as texture, not detail */
+.dish-img[style*="--lqip"]{background-color:var(--sand)}
+.ph[style*="--lqip"]{background-color:var(--maroon-3)}
+
+@media (prefers-reduced-motion:reduce){
+  .dish-img[style*="--lqip"] img,.ph[style*="--lqip"] img{animation:none}
+}

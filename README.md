@@ -42,13 +42,41 @@ Colours were sampled directly from the shop's own logo artwork:
 
 | Role | Face | Why |
 |---|---|---|
-| Burmese headings | **Noto Serif Myanmar** | Calligraphic stroke flare — sits naturally beside the logo lettering |
+| Burmese headings | **PDA18-Stone** → **Noto Serif Myanmar** | See the note below |
 | Burmese body | **Padauk** | Rounder and friendlier than Noto Sans at small sizes |
 | Latin display | **Fraunces** (`SOFT 100`, `WONK 1`) | Soft, slightly imperfect — reads hand-cut, not corporate |
 | Latin body | **Nunito** | Rounded terminals, warm, very legible |
 | Accents | **Shantell Sans** | The handwritten touches: eyebrows, tags, prices, stat labels |
 
 Roughly 280 KB of fonts over 4 files — browsers fetch only the subsets they need.
+
+#### About the Burmese display face
+
+The shop's name in the logo is **brush lettering, not a font** — that's why it ships
+as artwork. For the other Burmese headings we wanted something with the same
+hand-drawn warmth, and there is a hard constraint worth recording:
+
+- Google Fonts carries exactly **three** Myanmar families — Noto Sans Myanmar,
+  Noto Serif Myanmar and Padauk. All three are geometric and monoline. There is
+  no hand-crafted or handwriting Burmese webfont available to embed for free.
+- **PDA18-Stone** (Phoenix Digital Art) is a genuinely hand-drawn Myanmar face and
+  is by far the closest match to the logo — but it ships under a commercial EULA,
+  so it cannot be self-hosted or served as a webfont.
+
+So the display stack **names** PDA18-Stone first without embedding it:
+
+```css
+--f-my-dis: "PDA18-Stone", "Noto Serif Myanmar", "Padauk", "Myanmar Text", …;
+```
+
+Naming a font costs nothing and needs no licence. Anyone who already has it
+installed — which includes a lot of people in Myanmar — sees the hand-drawn face.
+Everyone else falls through to Noto Serif Myanmar at weight 900, the most
+characterful Burmese face that is free to embed.
+
+**To upgrade this properly:** buy a *webfont* licence for a Myanmar display face,
+drop the `.woff2` into `assets/fonts/`, add an `@font-face` block, and put its
+name at the front of `--f-my-dis`. Nothing else needs to change.
 
 ### The brand name is artwork, not a font
 
